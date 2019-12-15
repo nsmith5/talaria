@@ -1,0 +1,3 @@
+package conntest
+
+type ConnTest

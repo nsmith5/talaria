@@ -4,10 +4,13 @@ import (
 	"bufio"
 	"io"
 	"net"
+
+	"code.nfsmith.ca/nsmith/talaria/pkg/email"
 )
 
 type Server struct {
-	Addr string
+	Addr   string
+	Sender email.Sender
 }
 
 func (s *Server) Serve(l net.Listener) error {
@@ -43,6 +46,7 @@ func (s *Server) NewSession(conn io.ReadWriteCloser) Session {
 		conn:     conn,
 		lmt:      io.LimitedReader{R: conn, N: LINELIMIT},
 		hostname: hostname,
+		sender:   s.Sender,
 	}
 
 	session.buf = bufio.NewReader(&session.lmt)

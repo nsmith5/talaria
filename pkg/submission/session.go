@@ -8,6 +8,8 @@ import (
 	"net/textproto"
 	"runtime/debug"
 	"strings"
+
+	"code.nfsmith.ca/nsmith/talaria/pkg/email"
 )
 
 const (
@@ -57,6 +59,9 @@ type Session struct {
 	from       string
 	recipients []string
 	msg        []byte
+
+	// Sender
+	sender email.Sender
 }
 
 // Run initiates a mail submission session.
