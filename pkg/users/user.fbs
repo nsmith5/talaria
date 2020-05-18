@@ -1,0 +1,11 @@
+namespace users;
+
+table fbuser {
+    username:string;
+    passwordHash:string;
+    admin:bool = true;
+    email:string;
+    aliases:[string];   
+}
+
+root_type fbuser;

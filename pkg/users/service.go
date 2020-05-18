@@ -2,22 +2,13 @@ package users
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/nsmith5/talaria/pkg/kv"
 )
 
-type User struct {
-	Username     string
-	PasswordHash string
-	IsAdmin      bool
-	Email        string
-	Aliases      []string
-}
-
 type Service interface {
 	Create(context.Context, User) error
-	Fetch(ctx context.Context, username string) (*User, error)
+	Fetch(ctx context.Context, username string) (User, error)
 	Update(context.Context, User) error
 	Delete(ctx context.Context, username string) error
 }
@@ -35,15 +26,15 @@ func (kv *kvService) Create(ctx context.Context, usr User) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
-		data, err := json.Marshal(usr)
+		data, err := usr.MarshalBinary()
 		if err != nil {
 			return err
 		}
-		return kv.Put(ctx, usr.Username, data)
+		return kv.Put(ctx, usr.Username(), data)
 	}
 }
 
-func (kv *kvService) Fetch(ctx context.Context, username string) (*User, error) {
+func (kv *kvService) Fetch(ctx context.Context, username string) (User, error) {
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
@@ -53,33 +44,33 @@ func (kv *kvService) Fetch(ctx context.Context, username string) (*User, error) 
 			return nil, err
 		}
 
-		var user User
-		err = json.Unmarshal(data, &user)
+		var usr User
+		err = usr.UnmarshalBinary(data)
 		if err != nil {
 			return nil, err
 		}
 
-		return &user, nil
+		return usr, nil
 	}
 }
 
-func (kv *kvService) Update(ctx context.Context, user User) error {
+func (kv *kvService) Update(ctx context.Context, usr User) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
 		// Don't update if a user doesn't exist
-		_, err := kv.Get(ctx, user.Username)
+		_, err := kv.Get(ctx, usr.Username())
 		if err != nil {
 			return err
 		}
 
-		data, err := json.Marshal(user)
+		data, err := usr.MarshalBinary()
 		if err != nil {
 			return err
 		}
 
-		return kv.Put(ctx, user.Username, data)
+		return kv.Put(ctx, usr.Username(), data)
 	}
 }
 
